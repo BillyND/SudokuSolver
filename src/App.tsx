@@ -202,15 +202,17 @@ function App() {
                     : "Chế độ chỉ xem - mở khóa để chỉnh sửa"}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-9 gap-1 w-fit mx-auto">
+              <CardContent className="p-3 sm:p-6">
+                <div className="grid grid-cols-9 gap-0.5 sm:gap-1 w-fit mx-auto">
                   {grid.map((row, rowIndex) =>
                     row.map((cell, colIndex) => (
                       <Input
                         key={`${rowIndex}-${colIndex}`}
                         type="text"
+                        inputMode="numeric"
+                        pattern="[1-9]"
                         maxLength={1}
-                        className="w-10 h-10 text-center font-bold"
+                        className="w-8 h-8 sm:w-10 sm:h-10 text-center font-bold text-sm sm:text-base p-0"
                         value={cell || ""}
                         onChange={(e) =>
                           handleCellChange(rowIndex, colIndex, e.target.value)
