@@ -1,4 +1,14 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { Copy, Download, RotateCcw, Lock, Unlock, Play } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import "./App.css";
 
 type SudokuGrid = (number | null)[][];
@@ -7,6 +17,22 @@ const createEmptyGrid = (): SudokuGrid => {
   return Array(9)
     .fill(null)
     .map(() => Array(9).fill(null));
+};
+
+const loadFromStorage = (): SudokuGrid => {
+  const saved = localStorage.getItem("sudoku-puzzle");
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return createEmptyGrid();
+    }
+  }
+  return createEmptyGrid();
+};
+
+const saveToStorage = (grid: SudokuGrid) => {
+  localStorage.setItem("sudoku-puzzle", JSON.stringify(grid));
 };
 
 const isValid = (
@@ -60,10 +86,37 @@ const solveSudoku = (grid: SudokuGrid): boolean => {
   return true;
 };
 
+const formatSudokuAsText = (grid: SudokuGrid): string => {
+  let content = "";
+  content += "SUDOKU PUZZLE\n";
+  content += "=============\n\n";
+
+  for (let i = 0; i < 9; i++) {
+    let row = "";
+    for (let j = 0; j < 9; j++) {
+      row += (grid[i][j] || " ") + " ";
+      if (j === 2 || j === 5) row += "| ";
+    }
+    content += row + "\n";
+    if (i === 2 || i === 5) {
+      content += "------+-------+------\n";
+    }
+  }
+
+  content += "\nTạo bởi Sudoku Solver App";
+  return content;
+};
+
 function App() {
-  const [grid, setGrid] = useState<SudokuGrid>(createEmptyGrid);
+  const [grid, setGrid] = useState<SudokuGrid>(loadFromStorage);
   const [isInputMode, setIsInputMode] = useState(true);
   const [isSolved, setIsSolved] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  // Save to localStorage whenever grid changes
+  useEffect(() => {
+    saveToStorage(grid);
+  }, [grid]);
 
   const handleCellChange = (row: number, col: number, value: string) => {
     if (!isInputMode) return;
@@ -94,32 +147,27 @@ function App() {
     setGrid(createEmptyGrid());
     setIsInputMode(true);
     setIsSolved(false);
+    localStorage.removeItem("sudoku-puzzle");
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      const textContent = formatSudokuAsText(grid);
+      await navigator.clipboard.writeText(textContent);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+    }
   };
 
   const downloadSudoku = () => {
-    let content = "";
-    content += "SUDOKU PUZZLE\n";
-    content += "=============\n\n";
-
-    for (let i = 0; i < 9; i++) {
-      let row = "";
-      for (let j = 0; j < 9; j++) {
-        row += (grid[i][j] || " ") + " ";
-        if (j === 2 || j === 5) row += "| ";
-      }
-      content += row + "\n";
-      if (i === 2 || i === 5) {
-        content += "------+-------+------\n";
-      }
-    }
-
-    content += "\nTạo bởi Sudoku Solver App";
-
+    const content = formatSudokuAsText(grid);
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `sudoku_${new Date().toISOString().split("T")[0]!}.txt`;
+    link.download = `sudoku_${new Date().toISOString().split("T")[0]}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -132,85 +180,171 @@ function App() {
   };
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>🧩 Sudoku Solver</h1>
-        <p>Nhập số từ 1-9 vào các ô trống, sau đó nhấn "Giải Sudoku"</p>
-      </header>
+    <div className="container mx-auto p-6 max-w-6xl">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-3xl font-bold">🧩 Sudoku Solver</h1>
+          <p className="text-muted-foreground">
+            Nhập số từ 1-9 vào các ô trống, sau đó nhấn "Giải Sudoku"
+          </p>
+        </div>
 
-      <main className="main-content">
-        <div className="sudoku-container">
-          <div className="sudoku-grid">
-            {grid.map((row, rowIndex) =>
-              row.map((cell, colIndex) => (
-                <input
-                  key={`${rowIndex}-${colIndex}`}
-                  type="text"
-                  maxLength={1}
-                  className={`sudoku-cell ${
-                    rowIndex === 2 || rowIndex === 5 ? "border-bottom" : ""
-                  } ${colIndex === 2 || colIndex === 5 ? "border-right" : ""} ${
-                    !isInputMode ? "readonly" : ""
-                  }`}
-                  value={cell || ""}
-                  onChange={(e) =>
-                    handleCellChange(rowIndex, colIndex, e.target.value)
-                  }
-                  readOnly={!isInputMode}
-                />
-              ))
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Sudoku Card */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Sudoku Grid</CardTitle>
+                <CardDescription>
+                  {isInputMode
+                    ? "Nhấp vào ô để nhập số"
+                    : "Chế độ chỉ xem - mở khóa để chỉnh sửa"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-9 gap-1 w-fit mx-auto">
+                  {grid.map((row, rowIndex) =>
+                    row.map((cell, colIndex) => (
+                      <Input
+                        key={`${rowIndex}-${colIndex}`}
+                        type="text"
+                        maxLength={1}
+                        className="w-10 h-10 text-center font-bold"
+                        value={cell || ""}
+                        onChange={(e) =>
+                          handleCellChange(rowIndex, colIndex, e.target.value)
+                        }
+                        readOnly={!isInputMode}
+                      />
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Controls Card */}
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Điều khiển</CardTitle>
+                <CardDescription>
+                  Các tùy chọn cho Sudoku của bạn
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button
+                  onClick={toggleInputMode}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {isInputMode ? (
+                    <>
+                      <Lock className="h-4 w-4" />
+                      Khóa nhập liệu
+                    </>
+                  ) : (
+                    <>
+                      <Unlock className="h-4 w-4" />
+                      Mở nhập liệu
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  onClick={solvePuzzle}
+                  disabled={!isInputMode || isSolved}
+                  className="w-full"
+                >
+                  <Play className="h-4 w-4" />
+                  Giải Sudoku
+                </Button>
+
+                <Button
+                  onClick={copyToClipboard}
+                  variant="secondary"
+                  className="w-full"
+                >
+                  <Copy className="h-4 w-4" />
+                  {copySuccess ? "Đã sao chép!" : "Sao chép"}
+                </Button>
+
+                <Button
+                  onClick={downloadSudoku}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Download className="h-4 w-4" />
+                  Tải về TXT
+                </Button>
+
+                <Button
+                  onClick={resetGrid}
+                  variant="destructive"
+                  className="w-full"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Reset
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Success Message */}
+            {isSolved && (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center font-semibold">
+                    🎉 Đã giải xong Sudoku!
+                  </div>
+                </CardContent>
+              </Card>
             )}
+
+            {/* Copy Success Message */}
+            {copySuccess && (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center font-semibold">
+                    ✅ Đã sao chép vào clipboard!
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Instructions Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Hướng dẫn</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div>
+                  <strong>Nhập Sudoku:</strong> Nhấp vào các ô và nhập số từ 1-9
+                </div>
+                <div>
+                  <strong>Giải Sudoku:</strong> Nhấn nút "Giải Sudoku" để tự
+                  động giải
+                </div>
+                <div>
+                  <strong>Sao chép:</strong> Nhấn "Sao chép" để copy định dạng
+                  text
+                </div>
+                <div>
+                  <strong>Tải về:</strong> Nhấn "Tải về TXT" để lưu kết quả
+                  thành file
+                </div>
+                <div>
+                  <strong>Reset:</strong> Nhấn "Reset" để xóa toàn bộ và bắt đầu
+                  lại
+                </div>
+                <div className="text-xs text-muted-foreground mt-3">
+                  💡 Dữ liệu sẽ được tự động lưu và khôi phục khi reload trang
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
-
-        <div className="controls">
-          <button className="btn btn-primary" onClick={toggleInputMode}>
-            {isInputMode ? "🔒 Khóa nhập liệu" : "✏️ Mở nhập liệu"}
-          </button>
-
-          <button
-            className="btn btn-success"
-            onClick={solvePuzzle}
-            disabled={!isInputMode || isSolved}
-          >
-            🎯 Giải Sudoku
-          </button>
-
-          <button className="btn btn-info" onClick={downloadSudoku}>
-            📁 Tải về TXT
-          </button>
-
-          <button className="btn btn-warning" onClick={resetGrid}>
-            🔄 Reset
-          </button>
-        </div>
-
-        {isSolved && (
-          <div className="success-message">
-            <p>🎉 Đã giải xong Sudoku!</p>
-          </div>
-        )}
-
-        <div className="instructions">
-          <h3>Hướng dẫn:</h3>
-          <ul>
-            <li>
-              <strong>Nhập Sudoku:</strong> Nhấp vào các ô và nhập số từ 1-9
-            </li>
-            <li>
-              <strong>Giải Sudoku:</strong> Nhấn nút "Giải Sudoku" để tự động
-              giải
-            </li>
-            <li>
-              <strong>Tải về:</strong> Nhấn "Tải về TXT" để lưu kết quả thành
-              file
-            </li>
-            <li>
-              <strong>Reset:</strong> Nhấn "Reset" để xóa toàn bộ và bắt đầu lại
-            </li>
-          </ul>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
