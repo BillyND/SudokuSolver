@@ -4,26 +4,27 @@ export function InstructionsCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Hướng dẫn</CardTitle>
+        <CardTitle>Instructions</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2 text-sm">
         <div>
-          <strong>Nhập Sudoku:</strong> Nhấp vào các ô và nhập số từ 1-9
+          <strong>Input Sudoku:</strong> Click on cells and enter numbers 1-9
         </div>
         <div>
-          <strong>Giải Sudoku:</strong> Nhấn nút "Giải Sudoku" để tự động giải
+          <strong>Solve Sudoku:</strong> Click "Solve Sudoku" button to
+          automatically solve
         </div>
         <div>
-          <strong>Sao chép:</strong> Nhấn "Sao chép" để copy định dạng text
+          <strong>Copy:</strong> Click "Copy" to copy in text format
         </div>
         <div>
-          <strong>Tải về:</strong> Nhấn "Tải về TXT" để lưu kết quả thành file
+          <strong>Download:</strong> Click "Download TXT" to save result as file
         </div>
         <div>
-          <strong>Reset:</strong> Nhấn "Reset" để xóa toàn bộ và bắt đầu lại
+          <strong>Reset:</strong> Click "Reset" to clear all and start over
         </div>
         <div className="text-xs text-muted-foreground mt-3">
-          💡 Dữ liệu sẽ được tự động lưu và khôi phục khi reload trang
+          💡 Data will be automatically saved and restored when page reloads
         </div>
       </CardContent>
     </Card>

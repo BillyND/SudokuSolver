@@ -26,8 +26,8 @@ export function SudokuGrid({
         <CardTitle>Sudoku Grid</CardTitle>
         <CardDescription>
           {isInputMode
-            ? "Nhấp vào ô để nhập số"
-            : "Chế độ chỉ xem - mở khóa để chỉnh sửa"}
+            ? "Click on cells to enter numbers"
+            : "View mode - unlock to edit"}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-3 sm:p-6">
@@ -45,6 +45,12 @@ export function SudokuGrid({
                 onChange={(e) =>
                   onCellChange(rowIndex, colIndex, e.target.value)
                 }
+                onFocus={(e) => {
+                  // Move cursor to the end of the input
+                  const input = e.target as HTMLInputElement;
+                  const length = input.value.length;
+                  input.setSelectionRange(length, length);
+                }}
                 readOnly={!isInputMode}
               />
             ))

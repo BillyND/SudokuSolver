@@ -39,39 +39,41 @@ export function ControlPanel({
   // Check if grid is empty
   const isEmpty = !hasValues;
 
+  // Check if grid is completely filled
+  const isComplete = grid.every((row) => row.every((cell) => cell !== null));
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Điều khiển</CardTitle>
-        <CardDescription>Các tùy chọn cho Sudoku của bạn</CardDescription>
+        <CardTitle>Controls</CardTitle>
+        <CardDescription>Options for your Sudoku puzzle</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         <Button
           onClick={onToggleInputMode}
           variant="outline"
           className="w-full"
-          disabled={isEmpty && !isInputMode}
         >
           {isInputMode ? (
             <>
               <Lock className="h-4 w-4" />
-              Khóa nhập liệu
+              Lock Input
             </>
           ) : (
             <>
               <Unlock className="h-4 w-4" />
-              Mở nhập liệu
+              Unlock Input
             </>
           )}
         </Button>
 
         <Button
           onClick={onSolvePuzzle}
-          disabled={!isInputMode || isSolved || isEmpty}
+          disabled={!isInputMode || isSolved || isEmpty || isComplete}
           className="w-full"
         >
           <Play className="h-4 w-4" />
-          Giải Sudoku
+          Solve Sudoku
         </Button>
 
         <Button
@@ -81,7 +83,7 @@ export function ControlPanel({
           disabled={isEmpty}
         >
           <Copy className="h-4 w-4" />
-          {copySuccess ? "Đã sao chép!" : "Sao chép"}
+          {copySuccess ? "Copied!" : "Copy"}
         </Button>
 
         <Button
@@ -91,7 +93,7 @@ export function ControlPanel({
           disabled={isEmpty}
         >
           <Download className="h-4 w-4" />
-          Tải về TXT
+          Download TXT
         </Button>
 
         <Button

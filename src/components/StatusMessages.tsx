@@ -17,7 +17,7 @@ export function StatusMessages({ isSolved, copySuccess }: StatusMessagesProps) {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center font-semibold">
-              🎉 Đã giải xong Sudoku!
+              🎉 Sudoku solved successfully!
             </div>
           </CardContent>
         </Card>
@@ -28,7 +28,7 @@ export function StatusMessages({ isSolved, copySuccess }: StatusMessagesProps) {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center font-semibold">
-              ✅ Đã sao chép vào clipboard!
+              ✅ Copied to clipboard!
             </div>
           </CardContent>
         </Card>

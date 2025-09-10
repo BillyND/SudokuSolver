@@ -3,6 +3,8 @@ import { SudokuGrid } from "@/components/SudokuGrid";
 import { ControlPanel } from "@/components/ControlPanel";
 import { StatusMessages } from "@/components/StatusMessages";
 import { InstructionsCard } from "@/components/InstructionsCard";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import "./App.css";
 
 type SudokuGrid = (number | null)[][];
@@ -97,7 +99,7 @@ const formatSudokuAsText = (grid: SudokuGrid): string => {
     }
   }
 
-  content += "\nTạo bởi Sudoku Solver App";
+  content += "\nCreated by Sudoku Solver App";
   return content;
 };
 
@@ -130,10 +132,9 @@ function App() {
       setGrid(gridCopy);
       setIsSolved(true);
       setIsInputMode(false);
+      toast.success("Sudoku solved successfully!");
     } else {
-      alert(
-        "Không thể giải được Sudoku này. Vui lòng kiểm tra lại dữ liệu đầu vào."
-      );
+      toast.error("Cannot solve this Sudoku. Please check your input data.");
     }
   }, [grid]);
 
@@ -142,6 +143,7 @@ function App() {
     setIsInputMode(true);
     setIsSolved(false);
     localStorage.removeItem("sudoku-puzzle");
+    toast.success("Grid reset successfully!");
   };
 
   const copyToClipboard = async () => {
@@ -150,8 +152,10 @@ function App() {
       await navigator.clipboard.writeText(textContent);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
+      toast.success("Sudoku copied to clipboard!");
     } catch (err) {
       console.error("Failed to copy: ", err);
+      toast.error("Failed to copy to clipboard");
     }
   };
 
@@ -166,6 +170,7 @@ function App() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    toast.success("Sudoku downloaded successfully!");
   };
 
   const toggleInputMode = () => {
@@ -180,7 +185,7 @@ function App() {
         <div className="text-center">
           <h1 className="text-3xl font-bold">🧩 Sudoku Solver</h1>
           <p className="text-muted-foreground">
-            Nhập số từ 1-9 vào các ô trống, sau đó nhấn "Giải Sudoku"
+            Enter numbers 1-9 into empty cells, then click "Solve Sudoku"
           </p>
         </div>
 
@@ -214,6 +219,7 @@ function App() {
           </div>
         </div>
       </div>
+      <Toaster />
     </div>
   );
 }
